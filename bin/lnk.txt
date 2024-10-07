@@ -1,0 +1,8 @@
+ Volume in drive C has no label.
+ Volume Serial Number is F23B-E337
+
+ Directory of C:\Users\Angelo\OneDrive - Pamantasan ng Lungsod ng Maynila\Documents\4TH YEAR - 1ST SEM\Microprocessor\Laboratory\WinAsm
+
+09/16/2024  05:47 PM               757 16-bitadd2.asm
+               1 File(s)            757 bytes
+               0 Dir(s)  358,225,375,232 bytes free
