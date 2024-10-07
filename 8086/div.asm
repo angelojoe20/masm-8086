@@ -1,0 +1,29 @@
+CODE SEGMENT
+ASSUME CS: CODE, DS: DATA, ES: EXTRA
+
+DATA SEGMENT
+    OPR1 DD 74105169H    
+    OPR2 DW 7875H        
+DATA ENDS
+
+EXTRA SEGMENT
+    DIVQ DW ?            
+    DIVR DW ?            
+EXTRA ENDS
+
+START:
+    MOV AX, DATA         
+    MOV DS, AX           ; REGISTER ADDRESSING MODE
+    MOV AX, EXTRA
+    MOV ES, AX           ; REGISTER ADDRESSING MODE
+    MOV SI, OFFSET OPR1  
+    MOV AX, [SI]         ; INDEXED ADDRESING MODE
+    MOV DX, [SI+2]       ; INDEXED ADDRESING MODE
+    MOV BX, OPR2         ; DIRECT ADDRESING MODE
+    DIV BX               ; REGISTER ADDRESSING MODE
+    MOV DIVQ, AX         
+    MOV DIVR, DX         
+    INT 03H              
+
+CODE ENDS
+END START
