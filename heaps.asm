@@ -1,8 +1,8 @@
 ASSUME CS:CODE, DS:DATA
 
 DATA SEGMENT
-    LIST DW 0014h, 0233h, 0027h, 0357h, 0010h   ; Our input list
-    COUNT EQU 5                                ; Number of elements
+    LIST DW 0014h, 0233h, 0027h, 0357h  ; Our input list
+    COUNT EQU 4                         ; Number of elements
 DATA ENDS
 
 CODE SEGMENT
@@ -37,55 +37,50 @@ HEAPIFY_ALL ENDP
 
 ; Function to heapify a subtree rooted at BX
 HEAPIFY PROC
-    MOV DX, BX           ; DX holds the current root index
-    MOV SI, OFFSET LIST  ; SI points to LIST
+    PUSH CX              ; Save CX
+    PUSH DX              ; Save DX
 
-    ; Calculate left child index (2*BX)
-    MOV DI, BX           ; Copy BX (current root index) to DI
-    SHL DI, 1            ; DI = BX * 2 (left child index)
-    ADD DI, SI           ; DI now holds the address of the left child
+    MOV DX, BX           ; DX = BX (root index)
+    MOV DI, DX           ; DI = root index
+    SHL DI, 1            ; DI = DI * 2 (root offset)
+    ADD DI, SI           ; DI = base + root offset
+    MOV AX, [DI]         ; Load root into AX
 
-    ; Check if left child index is out of bounds
-    MOV AX, COUNT
-    SHL AX, 1            ; AX = COUNT * 2 (size of list in bytes)
-    ADD AX, SI           ; Calculate upper bound address (end of the list)
-    CMP DI, AX           ; Compare left child address with the upper bound
+    ; Calculate left child index
+    MOV BX, DX           ; BX = root index
+    SHL BX, 1            ; BX = BX * 2 (left child offset)
+    ADD BX, SI           ; BX = base + left child offset
+    CMP BX, OFFSET LIST + (COUNT * 2)  ; Check if left child is within bounds
     JAE NO_LEFT_CHILD    ; If out of bounds, skip left child processing
 
-    MOV AX, [DI]         ; Load left child into AX
-    MOV DI, DX           ; Use DI to hold the root index
-    SHL DI, 1            ; Multiply DX by 2 to calculate root address
-    ADD DI, SI           ; Calculate address of the root
-    CMP AX, [DI]         ; Compare left child with root
-    JBE CHECK_RIGHT      ; If root >= left child, skip to right
+    MOV CX, [BX]         ; Load left child into CX
+    CMP AX, CX           ; Compare root with left child
+    JAE CHECK_RIGHT      ; If root >= left child, check right child
 
-    XCHG AX, [DI]        ; Swap root and left child
-    MOV [DI], AX         ; Update root with swapped value
+    XCHG AX, CX          ; Swap root and left child
+    MOV [DI], CX         ; Update root with swapped value
     MOV DX, BX           ; Update root to left child
     JMP HEAPIFY          ; Recursively heapify affected subtree
 
 CHECK_RIGHT:
-    INC BX               ; Calculate right child index
-    SHL BX, 1            ; BX = BX * 2 (right child index)
-    ADD BX, SI           ; Calculate address of the right child
-    CMP BX, AX           ; Check if right child is within bounds
+    ADD BX, 2            ; Calculate right child offset
+    CMP BX, OFFSET LIST + (COUNT * 2)  ; Check if right child is within bounds
     JAE NO_RIGHT_CHILD   ; If out of bounds, skip right child processing
 
-    MOV DI, BX           ; Use DI for right child index
-    MOV AX, [DI]         ; Load right child into AX
-    MOV DI, DX           ; Recalculate root index
-    SHL DI, 1            ; Multiply DX by 2 to calculate root address
-    ADD DI, SI           ; Calculate address of the root
-    CMP AX, [DI]         ; Compare right child with root
-    JBE NO_RIGHT_CHILD   ; If root >= right child, we're done
+    MOV CX, [BX]         ; Load right child into CX
+    CMP AX, CX           ; Compare root with right child
+    JAE NO_RIGHT_CHILD   ; If root >= right child, we're done
 
-    XCHG AX, [DI]        ; Swap root and right child
-    MOV [DI], AX         ; Update root with swapped value
+    XCHG AX, CX          ; Swap root and right child
+    MOV [DI], CX         ; Update root with swapped value
     MOV DX, BX           ; Update root to right child
     JMP HEAPIFY          ; Recursively heapify affected subtree
 
 NO_LEFT_CHILD:
 NO_RIGHT_CHILD:
+    MOV [DI], AX         ; Update root with final value
+    POP DX               ; Restore DX
+    POP CX               ; Restore CX
     RET
 HEAPIFY ENDP
 
@@ -102,8 +97,16 @@ HEAP_SORT_LOOP:
     XCHG AX, [DI]         ; Swap root and last element
     MOV [SI], AX          ; Store the swapped root at the start
 
-    CALL HEAPIFY_ALL      ; Heapify the reduced heap
-    JNZ HEAP_SORT_LOOP    ; Continue until only one element remains
+    PUSH CX               ; Save current heap size
+    MOV BX, 0             ; Start heapify from the root
+    CALL HEAPIFY          ; Restore heap property
+    POP CX                ; Restore heap size
+
+    ; Debug: Print list after each iteration
+    CALL PRINT_LIST
+
+    CMP CX, 1             ; Check if heap size is greater than 1
+    JG HEAP_SORT_LOOP     ; Repeat until heap size is 1
     RET
 HEAP_SORT ENDP
 

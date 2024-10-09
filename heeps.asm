@@ -2,7 +2,7 @@
 .stack 100h
 .data
 arr db 8, 9, 6, 5  ; Array to be sorted
-n   db 4                       ; Size of the array
+n   db 4           ; Size of the array
 
 .code
 main proc
@@ -22,11 +22,12 @@ sort_loop:
     mov al, arr[0]              ; Swap first and last element
     mov bx, cx
     mov ah, arr[bx]
-    mov arr[0], ah              ; ah, higher bit = first two digit sa ax
-    mov arr[bx], al             ; al, lower bit = last two digit sa ax
+    mov arr[0], ah
+    mov arr[bx], al
 
     push cx                     ; Save current length of the array
-    call max_heapify             ; Restore heap property
+    mov bx, 0                   ; Start heapify from the root
+    call max_heapify            ; Restore heap property
     pop cx
     loop sort_loop
 
@@ -38,7 +39,7 @@ main endp
 
 ; Heapify all nodes
 heapify_all proc
-    mov bx, cx
+    mov bx, cl
 heapify_loop:
     push cx
     call max_heapify
